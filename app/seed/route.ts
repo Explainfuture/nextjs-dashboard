@@ -7,11 +7,18 @@ const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 async function seedUsers() {
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await sql`
-    CREATE TABLE IF NOT EXISTS users (
+    CREATE TABLE IF NOT EXISTS auth_users (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
+      name VARCHAR(255),
       email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL
+      password_hash TEXT,
+      image_url TEXT,
+      auth_provider TEXT NOT NULL DEFAULT 'credentials',
+      provider_account_id TEXT,
+      email_verified TIMESTAMPTZ,
+      last_login_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `;
 
@@ -19,8 +26,8 @@ async function seedUsers() {
     users.map(async (user) => {
       const hashedPassword = await bcrypt.hash(user.password, 10);
       return sql`
-        INSERT INTO users (id, name, email, password)
-        VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword})
+        INSERT INTO auth_users (id, name, email, password_hash, auth_provider, email_verified, updated_at)
+        VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword}, 'credentials', NOW(), NOW())
         ON CONFLICT (id) DO NOTHING;
       `;
     }),

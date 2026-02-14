@@ -3,6 +3,15 @@ import LoginForm from '@/app/ui/login-form';
 import { Suspense } from 'react';
  
 export default function LoginPage() {
+  const githubEnabled = Boolean(
+    (process.env.AUTH_GITHUB_ID ?? process.env.GITHUB_ID) &&
+      (process.env.AUTH_GITHUB_SECRET ?? process.env.GITHUB_SECRET),
+  );
+  const googleEnabled = Boolean(
+    (process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID) &&
+      (process.env.AUTH_GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET),
+  );
+
   return (
     <main className="flex items-center justify-center md:h-screen">
       <div className="relative mx-auto flex w-full max-w-[400px] flex-col space-y-2.5 p-4 md:-mt-32">
@@ -12,7 +21,7 @@ export default function LoginPage() {
           </div>
         </div>
         <Suspense>
-          <LoginForm />
+          <LoginForm githubEnabled={githubEnabled} googleEnabled={googleEnabled} />
         </Suspense>
       </div>
     </main>
